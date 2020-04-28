@@ -4,6 +4,8 @@
 rm(list=ls())
 library(data.table)
 library(rgdal)
+library(leaflet)
+
 
 folders = list()
 folders$tmp = "./tmp"
@@ -75,8 +77,18 @@ CRS.new = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
 tmp.wgs84 = as.data.table(spTransform(tmp, CRS.new))
 tmp.wgs84[, CoordinateSystemCode := "EPSG:4326"]
 
-# Finalize
+# rbind
 e = rbind(e[CoordinateSystemCode != "EPSG:4258"], tmp.wgs84)
+
+# show biggest 100 in leaflet
+leaflet_map = leaflet(data = e[order(TotalQuantity)][1:100]) %>% addProviderTiles("CartoDB.Positron")
+
+leaflet_map = leaflet_map %>%
+  addMarkers(~Long, ~Lat, popup = ~as.character(FacilityName), label = ~as.character(FacilityName))
+
+leaflet_map
+
+# finalize
 coordinates(e) = 12:13
 
 # Check encoding
