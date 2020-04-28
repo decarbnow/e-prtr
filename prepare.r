@@ -59,7 +59,7 @@ f = f[, c("FacilityReportID",
 convRows = c("ParentCompanyName", "FacilityName", "StreetName", "City")
 for(convRow in convRows){
   f[[convRow]] = iconv(f[[convRow]], "latin1", "UTF-8")
-
+  
 }
 
 # Merge
@@ -69,20 +69,19 @@ e = e[ReportingYear >= 2015]
 
 # Transform to WGS 84
 tmp = e[CoordinateSystemCode == "EPSG:4258"]
-coordinates(tmp) <- 12:13
-proj4string(tmp) <- CRS("+init=epsg:4258") # WGS 84
+coordinates(tmp) = 12:13
+proj4string(tmp) = CRS("+init=epsg:4258") # WGS 84
 CRS.new = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
-tmp.wgs84 = spTransform(tmp, CRS.new)
-tmp.wgs84 = as.data.table(tmp.wgs84)
-tmp.wgs84$CoordinateSystemCode = "EPSG:4326"
+tmp.wgs84 = as.data.table(spTransform(tmp, CRS.new))
+tmp.wgs84[, CoordinateSystemCode := "EPSG:4326"]
 
 # Finalize
 e = rbind(e[CoordinateSystemCode != "EPSG:4258"], tmp.wgs84)
-coordinates(e) <- 12:13
+coordinates(e) = 12:13
 
 # Check encoding
 head(Encoding(e@data$ParentCompanyName), 15)
 head(e@data$ParentCompanyName, 15)
 
 # Write out
-writeOGR(e, file.path(folders$tmp, "e-prtr.geojson"), layer="ghg", driver="GeoJSON", check_exists=FALSE)
+writeOGR(e, file.path(folders$tmp, "e-prtr.geojson"), layer = "ghg", driver = "GeoJSON", check_exists = FALSE)
